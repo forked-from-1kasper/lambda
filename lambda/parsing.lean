@@ -43,4 +43,18 @@ def Let : parser (string × term) := do
   tok ":=", body ← Term,
   pure (name, body)
 
+def Numeral : parser char :=
+sat $ λ c, list.any "0123456789".to_list (= c)
+def Number := many_char1 Numeral
+
+def Command : parser repl_command :=
+str ":quit" >> pure repl_command.quit <|>
+str ":help" >> pure repl_command.help <|>
+str ":env" >> pure repl_command.env <|>
+str ":depth" >> Ws >> Number >>=
+  (pure ∘ repl_command.depth ∘ string.to_nat) <|>
+str ":show_depth" >> pure repl_command.show_depth <|>
+Let >>= (pure ∘ function.uncurry repl_command.bind) <|>
+Term >>= (pure ∘ repl_command.term)
+
 end parsing

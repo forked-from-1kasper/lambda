@@ -55,4 +55,10 @@ match eval n e₁ with
   | (res, r) := (app res e₂, r)
 end
 
+inductive repl_command : Type
+| term : term → repl_command
+| quit | help | env | show_depth
+| depth : nat → repl_command
+| bind : string → term → repl_command
+
 end types
