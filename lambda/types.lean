@@ -14,8 +14,11 @@ list.foldl app t b
 
 def term_to_string : term → string
 | (var n) := sformat! "{n}"
-| (app e₁ e₂) := sformat! "({term_to_string e₁} {term_to_string e₂})"
-| (lam n t) := sformat! "λ{n},{term_to_string t}"
+| (app (var e₁) (var e₂)) := sformat! "{e₁} {e₂}"
+| (app e₁ (var e₂)) := sformat! "({term_to_string e₁}) {e₂}"
+| (app (var e₁) e₂) := sformat! "{e₁} ({term_to_string e₂})"
+| (app e₁ e₂) := sformat! "({term_to_string e₁}) ({term_to_string e₂})"
+| (lam n t) := sformat! "λ{n}, {term_to_string t}"
 
 instance term_has_to_string : has_to_string term :=
 ⟨term_to_string⟩
@@ -57,7 +60,7 @@ end
 
 inductive repl_command : Type
 | term : term → repl_command
-| quit | help | env | show_depth
+| quit | help | env | show_depth | clear_env
 | depth : nat → repl_command
 | bind : string → term → repl_command
 

@@ -21,6 +21,7 @@ def help : string := "
 :env              show variables in the scope
 :show_depth       show current recursion depth
 :depth [nat]      set recursion depth
+:clear_env        clear environment
 let name := body  creates a new variable “name” with value “body”"
 
 structure repl_configuration :=
@@ -41,6 +42,7 @@ def loop : repl_configuration → io (option repl_configuration)
         io.put_str_ln $ sformat! "{var.1} := {var.2}")
         conf.env,
     pure conf
+  | (sum.inr repl_command.clear_env) := pure $ some { conf with env := [] }
   | (sum.inr $ repl_command.depth depth) :=
     pure $ some { conf with recursion_depth := depth }
   | (sum.inr repl_command.show_depth) := do

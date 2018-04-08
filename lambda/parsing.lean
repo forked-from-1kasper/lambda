@@ -54,6 +54,7 @@ str ":env" >> pure repl_command.env <|>
 str ":depth" >> Ws >> Number >>=
   (pure ∘ repl_command.depth ∘ string.to_nat) <|>
 str ":show_depth" >> pure repl_command.show_depth <|>
+str ":clear_env" >> pure repl_command.clear_env <|>
 Let >>= (pure ∘ function.uncurry repl_command.bind) <|>
 Term >>= (pure ∘ repl_command.term)
 
