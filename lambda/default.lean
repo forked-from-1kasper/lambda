@@ -16,14 +16,16 @@ def env : list (string × term) :=
              (term.app (term.var "g") (term.var "x"))))]
 
 def help : string := "
-:help             print this summary or command-specific help
-:quit             exit the interpreter
-:env              show variables in the scope
-:show_depth       show current recursion depth
-:depth [nat]      set recursion depth
-:clear_env        clear environment
-:load [filename]  load file “filename”
-let name := body  creates a new variable “name” with value “body”"
+:help                print this summary or command-specific help
+:quit                exit the interpreter
+:env                 show variables in the scope
+:show_depth          show current recursion depth
+:depth [nat]         set recursion depth
+:show_import_depth   show current import depth
+:import_depth [nat]  set import depth
+:clear_env           clear environment
+:load [filename]     load file “filename”
+let name := body     creates a new variable “name” with value “body”"
 
 structure repl_configuration :=
 (env : list (string × term))
@@ -78,8 +80,13 @@ def loop : repl_configuration → io (option repl_configuration)
     some <$> read_from_file conf.import_depth conf filename
   | (sum.inr $ repl_command.depth depth) :=
     pure $ some { conf with recursion_depth := depth }
+  | (sum.inr $ repl_command.import_depth depth) :=
+    pure $ some { conf with import_depth := depth }
   | (sum.inr repl_command.show_depth) := do
     io.put_str_ln $ to_string conf.recursion_depth,
+    pure conf
+  | (sum.inr repl_command.show_import_depth) := do
+    io.put_str_ln $ to_string conf.import_depth,
     pure conf
   | (sum.inr $ repl_command.bind name t) :=
     pure $ some { conf with env :=

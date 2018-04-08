@@ -62,8 +62,10 @@ inductive repl_command : Type
 | term : term → repl_command
 | quit | help | env
 | show_depth | clear_env | nothing
+| show_import_depth
 | load : string → repl_command
 | depth : nat → repl_command
+| import_depth : nat → repl_command
 | bind : string → term → repl_command
 
 end types

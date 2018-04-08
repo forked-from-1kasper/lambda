@@ -60,7 +60,10 @@ str ":help" >> pure repl_command.help <|>
 str ":env" >> pure repl_command.env <|>
 str ":depth" >> Ws >> Number >>=
   (pure ∘ repl_command.depth ∘ string.to_nat) <|>
+str ":import_depth" >> Ws >> Number >>=
+  (pure ∘ repl_command.import_depth ∘ string.to_nat) <|>
 str ":show_depth" >> pure repl_command.show_depth <|>
+str ":show_import_depth" >> pure repl_command.show_import_depth <|>
 str ":clear_env" >> pure repl_command.clear_env <|>
 str ":load" >> Ws >> Word >>= (pure ∘ repl_command.load) <|>
 Let >>= (pure ∘ function.uncurry repl_command.bind) <|>
