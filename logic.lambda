@@ -1,0 +1,3 @@
+-- booleans
+let true := λx y, x
+let false := λx y, y

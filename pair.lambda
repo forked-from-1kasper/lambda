@@ -1,6 +1,4 @@
--- booleans
-let true := λx y, x
-let false := λx y, y
+:load logic.lambda
 
 let pair := λe₁ e₂, λf, (f e₁ e₂) -- comment
 let fst := λp, (p true)
