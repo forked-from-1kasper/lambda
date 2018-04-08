@@ -60,7 +60,9 @@ end
 
 inductive repl_command : Type
 | term : term → repl_command
-| quit | help | env | show_depth | clear_env
+| quit | help | env
+| show_depth | clear_env | nothing
+| load : string → repl_command
 | depth : nat → repl_command
 | bind : string → term → repl_command
 

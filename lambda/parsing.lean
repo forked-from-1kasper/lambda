@@ -4,12 +4,19 @@ open parser types
 
 namespace parsing
 
+def whitespaces := " \t\n\x0d".to_list
+
 def WordChar : parser char :=
-sat (λ c, c ≠ ' ' ∧ c ≠ ',' ∧ c ≠ 'λ' ∧ c ≠ '(' ∧ c ≠ ')')
+sat (λ c, list.all ([' ', ',', 'λ', '(', ')', '-'] ++ whitespaces) (≠ c))
+
+def LF := ch $ char.of_nat 10
+def CR := ch $ char.of_nat 13
+
+def Nl := CR >> LF <|> LF <|> CR
 
 def Ws : parser unit :=
 decorate_error "<whitespace>" $
-many' $ one_of' " \t\x0d".to_list
+many' $ one_of' whitespaces
 
 def Word : parser string := many_char1 WordChar
 
@@ -47,7 +54,7 @@ def Numeral : parser char :=
 sat $ λ c, list.any "0123456789".to_list (= c)
 def Number := many_char1 Numeral
 
-def Command : parser repl_command :=
+def Command_line : parser repl_command :=
 str ":quit" >> pure repl_command.quit <|>
 str ":help" >> pure repl_command.help <|>
 str ":env" >> pure repl_command.env <|>
@@ -55,7 +62,15 @@ str ":depth" >> Ws >> Number >>=
   (pure ∘ repl_command.depth ∘ string.to_nat) <|>
 str ":show_depth" >> pure repl_command.show_depth <|>
 str ":clear_env" >> pure repl_command.clear_env <|>
+str ":load" >> Ws >> Word >>= (pure ∘ repl_command.load) <|>
 Let >>= (pure ∘ function.uncurry repl_command.bind) <|>
-Term >>= (pure ∘ repl_command.term)
+Term >>= (pure ∘ repl_command.term) <|>
+many Ws >> pure repl_command.nothing
+
+def Command : parser repl_command := do
+  cmd ← Command_line,
+  optional (str "--" >> optional Ws >> many (sat (λ _, tt))),
+  optional $ many Ws,
+  pure cmd
 
 end parsing

@@ -1,0 +1,10 @@
+-- booleans
+let true := λx y, x
+let false := λx y, y
+
+let pair := λe₁ e₂, λf, (f e₁ e₂) -- comment
+let fst := λp, (p true)
+let snd := λp, (p false)
+
+(fst (pair a b))
+(snd (pair a b))
