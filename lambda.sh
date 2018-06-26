@@ -1,2 +1,2 @@
 #! /usr/bin/env bash
-lean --run lambda/default.lean
+lean --run lambda/default.lean $*

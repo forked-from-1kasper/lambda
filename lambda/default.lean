@@ -54,7 +54,8 @@ def read_from_file : nat → repl_configuration → string → io repl_configura
           let file_eval := eval conf.recursion_depth ∘ mk_env conf.env,
           match run_string Command line with
             | (sum.inr $ repl_command.term t) := do
-              io.put_str_ln $ to_string (file_eval t).1,
+              let (evaluated, info) := file_eval t,
+              io.put_str_ln $ sformat! "{line} ⇒ {evaluated} ({info})",
               pure conf
             | (sum.inr $ repl_command.bind name t) :=
               pure $ some { conf with
@@ -107,8 +108,18 @@ def loop : repl_configuration → io (option repl_configuration)
 def initial_conf : repl_configuration :=
 { import_depth := 1000, recursion_depth := 1000, env := env }
 
-def main : io unit :=
-io.iterate initial_conf
-  (λ (c : repl_configuration),
-    io.catch (loop c) (io.error.avoid_error $ pure c)) >>
-pure ()
+def load_from_files (files : list string) : io repl_configuration :=
+list.foldl
+  (λ (c : io repl_configuration) (filename : string), do
+    conf ← c, io.put_str_ln $ sformat! "Loading file “{filename}”.",
+    read_from_file conf.import_depth conf filename)
+  (pure initial_conf)
+  files
+
+def main : io unit := do
+  args ← io.cmdline_args, conf ← load_from_files args,
+  io.put_str_ln "Type “:help” for help.",
+  io.iterate conf
+    (λ (c : repl_configuration),
+      io.catch (loop c) (io.error.avoid_error $ pure c)) >>
+  pure ()
