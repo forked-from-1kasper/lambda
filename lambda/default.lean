@@ -8,6 +8,12 @@ match list.unzip env with
 | (names, terms) := multi_app (multi_lam names t) terms
 end
 
+namespace io.error
+  def avoid_error {α : Type} (m : io α) : io.error → io α
+  | (io.error.other s) := (io.put_str_ln s) >> m
+  | (io.error.sys n) := (io.put_str_ln $ sformat! "System error #{n}") >> m
+end io.error
+
 def env : list (string × term) :=
 [("I", term.lam "x" (term.var "x")),
  ("K", multi_lam ["x", "y"] (term.var "x")),
@@ -101,4 +107,8 @@ def loop : repl_configuration → io (option repl_configuration)
 def initial_conf : repl_configuration :=
 { import_depth := 1000, recursion_depth := 1000, env := env }
 
-def main : io unit := io.iterate initial_conf loop >> pure ()
+def main : io unit :=
+io.iterate initial_conf
+  (λ (c : repl_configuration),
+    io.catch (loop c) (io.error.avoid_error $ pure c)) >>
+pure ()

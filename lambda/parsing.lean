@@ -6,8 +6,10 @@ namespace parsing
 
 def whitespaces := " \t\n\x0d".to_list
 
+def reserved_chars :=
+[' ', ',', 'λ', '(', ')', ':', '-']
 def WordChar : parser char :=
-sat (λ c, list.all ([' ', ',', 'λ', '(', ')', '-'] ++ whitespaces) (≠ c))
+sat (λ c, list.all (reserved_chars ++ whitespaces) (≠ c))
 
 def LF := ch $ char.of_nat 10
 def CR := ch $ char.of_nat 13
@@ -38,10 +40,14 @@ def App (Term : parser term) : parser term := do
   body ← sep_by Ws Term,
   pure $ multi_app head body
 
+def parens (term : parser term) :=
+term <|> (ch '(' >> term <* ch ')')
+
 def Term_core : parser term → parser term
-| Term_recur := let term := App Term_recur <|> Var <|> Lam Term_recur in do
-  t ← (do ch '(', t ← term, ch ')', pure t) <|> term,
-  pure t
+| Term_recur :=
+  let term := Lam (parens Term_recur) <|>
+              App (parens Term_recur) <|> Var in
+  parens term
 def Term := fix Term_core
 
 def Let : parser (string × term) := do
