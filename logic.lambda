@@ -1,3 +1,10 @@
 -- booleans
 let true := λx y, x
 let false := λx y, y
+
+-- if-then-else
+let ite := λe e₁ e₂, e e₁ e₂
+
+let not := λp, ite p false true
+let and := λp q, ite p q false
+let or := λp q, ite p true q
