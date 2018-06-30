@@ -100,7 +100,7 @@ def loop : repl_configuration → io (option repl_configuration)
       conf.env ++ pure (name, (repl_eval t).1) }
   | (sum.inr $ repl_command.term t) :=
     let res := repl_eval t in
-    do io.put_str_ln $ sformat! "{res.1} : {res.2}", pure conf
+    do io.put_str_ln $ sformat! "{res.1}\n⇒  {res.2}", pure conf
   | (sum.inr repl_command.nothing) := pure conf
   | (sum.inl er) := do io.put_str_ln er, pure conf
   end
