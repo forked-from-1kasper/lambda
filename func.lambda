@@ -1,0 +1,4 @@
+:load pair.lambda
+
+let curry := λf x y, f (pair x y)
+let uncurry := λg p, g (fst p) (snd p)

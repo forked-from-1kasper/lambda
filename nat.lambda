@@ -1,0 +1,12 @@
+:load pair.lambda
+
+let zero := λf x, x
+let one := λf x, f x
+let two := λf x, f (f x)
+
+let suc := λn f x, (n f) (f x)
+let three := suc two
+
+let iszero := λn, n (λx, false) true
+
+let add := λm n f x, (m f) (n f x)
