@@ -1,0 +1,4 @@
+:load logic.lambda
+
+let mutable := true
+let mutable := false -- error
