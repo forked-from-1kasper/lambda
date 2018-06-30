@@ -8,18 +8,18 @@ match list.unzip env with
 | (names, terms) := multi_app (multi_lam names t) terms
 end
 
+def add_to_env (env : list (string × term)) : string × term →
+               sum string (list (string × term))
+| (name, t) :=
+  if name ∈ env.unzip.fst then
+    sum.inl $ sformat! "error: term “{name}” is already defined"
+  else sum.inr $ env ++ pure (name, t)
+
 namespace io.error
   def avoid_error {α : Type} (m : io α) : io.error → io α
   | (io.error.other s) := (io.put_str_ln s) >> m
   | (io.error.sys n) := (io.put_str_ln $ sformat! "System error #{n}") >> m
 end io.error
-
-def env : list (string × term) :=
-[("I", term.lam "x" (term.var "x")),
- ("K", multi_lam ["x", "y"] (term.var "x")),
- ("S", multi_lam ["f", "g", "x"]
-   (term.app (term.app (term.var "f") (term.var "x"))
-             (term.app (term.var "g") (term.var "x"))))]
 
 def help : string := "
 :help                print this summary or command-specific help
@@ -58,8 +58,10 @@ def read_from_file : nat → repl_configuration → string → io repl_configura
               io.put_str_ln $ sformat! "{line} ⇒ {evaluated} ({info})",
               pure conf
             | (sum.inr $ repl_command.bind name t) :=
-              pure $ some { conf with
-                env := conf.env ++ [(name, (file_eval t).1)] }
+              match add_to_env conf.env (name, (file_eval t).1) with
+              | sum.inr new_env := pure $ some { conf with env := new_env }
+              | sum.inl error_msg := io.fail error_msg
+              end
             | (sum.inr $ repl_command.load filename) :=
               some <$> (read_from_file n conf filename)
             | (sum.inl er) := do io.put_str_ln er, pure none
@@ -96,17 +98,26 @@ def loop : repl_configuration → io (option repl_configuration)
     io.put_str_ln $ to_string conf.import_depth,
     pure conf
   | (sum.inr $ repl_command.bind name t) :=
-    pure $ some { conf with env :=
-      conf.env ++ pure (name, (repl_eval t).1) }
+    match add_to_env conf.env (name, (repl_eval t).1) with
+    | sum.inr new_env := pure $ some { conf with env := new_env }
+    | sum.inl error_msg := io.put_str_ln error_msg >> pure (some conf)
+    end
   | (sum.inr $ repl_command.term t) :=
     let res := repl_eval t in
-    do io.put_str_ln $ sformat! "{res.1}\n⇒  {res.2}", pure conf
+    do io.put_str_ln $ sformat! "{res.1}\n-- {res.2}", pure conf
   | (sum.inr repl_command.nothing) := pure conf
   | (sum.inl er) := do io.put_str_ln er, pure conf
   end
 
+def basic_env : list (string × term) :=
+[("I", term.lam "x" (term.var "x")),
+ ("K", multi_lam ["x", "y"] (term.var "x")),
+ ("S", multi_lam ["f", "g", "x"]
+   (term.app (term.app (term.var "f") (term.var "x"))
+             (term.app (term.var "g") (term.var "x"))))]
+
 def initial_conf : repl_configuration :=
-{ import_depth := 1000, recursion_depth := 1000, env := env }
+{ import_depth := 1000, recursion_depth := 1000, env := basic_env }
 
 def load_from_files (files : list string) : io repl_configuration :=
 list.foldl
