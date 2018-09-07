@@ -30,6 +30,8 @@ private def utf_8_convert_bitvec : list (bitvec 8) → option (list char)
 -- This is simple realisation of correct convert from char_buffer to string
 -- for UTF-8 encoding.
 def utf8_to_string (buff : char_buffer) : option string :=
-list.as_string <$> utf_8_convert_bitvec (list.map (bitvec.of_nat 8 ∘ char.to_nat) buff.to_list)
+list.as_string <$>
+  utf_8_convert_bitvec ((bitvec.of_nat 8 ∘ char.to_nat) <$>
+                         buff.to_list)
 
 end unicode
