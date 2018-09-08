@@ -45,9 +45,10 @@ term <|> (ch '(' >> term <* ch ')')
 
 def Term_core : parser term → parser term
 | Term_recur :=
-  let term := Lam (parens Term_recur) <|>
-              App (parens Term_recur) <|> Var in
-  parens term
+  parens $
+    Lam (parens Term_recur) <|>
+    App (parens Term_recur) <|>
+    Var
 def Term := fix Term_core
 
 def Let : parser (string × term) := do
