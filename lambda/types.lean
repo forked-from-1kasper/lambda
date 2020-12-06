@@ -33,8 +33,7 @@ def subst : string → term → term → term
 | x newVal (app e₁ e₂) :=
   app (subst x newVal e₁) (subst x newVal e₂)
 | x newVal (var y) :=
-  if x = y then newVal
-  else var y
+  if x = y then newVal else var y
 
 inductive eval_result
 | limit | normal
@@ -49,14 +48,14 @@ instance result_has_repr : has_repr eval_result :=
 ⟨result_to_string⟩
 
 def eval : nat → term → term × eval_result
-| 0 r := (r, eval_result.limit)
-| _ (lam x e) := (lam x e, eval_result.normal)
-| _ (var n) := (var n, eval_result.normal)
+|      0            r      := (r, eval_result.limit)
+|      _        (lam x e)  := (lam x e, eval_result.normal)
+|      _         (var n)   := (var n, eval_result.normal)
 | (nat.succ n) (app e₁ e₂) :=
-match eval n e₁ with
+  match eval n e₁ with
   | (lam x body, _) := eval n (subst x e₂ body)
   | (res, r) := (app res e₂, r)
-end
+  end
 
 inductive repl_command : Type
 | term : term → repl_command

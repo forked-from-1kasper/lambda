@@ -1,7 +1,7 @@
 import lambda.parsing lambda.types lambda.unicode
 import system.io data.buffer.parser
 
-open parsing types parser
+open parsing types parser (hiding nat)
 
 def mk_env (env : list (string × term)) (t : term) : term :=
 match list.unzip env with
